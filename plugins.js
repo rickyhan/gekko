@@ -66,6 +66,17 @@ var plugins = [
     }]
   },
   {
+    name: 'Pushover',
+    description: 'Sends pushover.',
+    slug: 'pushover',
+    async: false,
+    modes: ['realtime'],
+    dependencies: [{
+      module: 'pushover-notifications',
+      version: '0.2.3'
+    }]
+  },
+  {
     name: 'Campfire bot',
     description: 'Lets you communicate with Gekko on Campfire.',
     slug: 'campfire',
@@ -84,12 +95,13 @@ var plugins = [
     modes: ['realtime'],
     dependencies: [{
       module: 'emailjs',
-      version: '0.3.6'
+      version: '1.0.5'
     }, {
       module: 'prompt-lite',
       version: '0.1.1'
     }]
   },
+
   {
     name: 'Trader',
     description: 'Follows the advice and create real orders.',
