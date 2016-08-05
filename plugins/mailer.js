@@ -97,6 +97,9 @@ Mailer.prototype.processCandle = function(candle, done) {
 }
 
 Mailer.prototype.processAdvice = function(advice) {
+
+  if (advice.recommandation == "soft" && mailConfig.muteSoft) return;
+
   var text = [
     'Gekko is watching ',
     config.watch.exchange,
