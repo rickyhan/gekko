@@ -154,7 +154,8 @@ config.trader = {
 }
 
 config.adviceLogger = {
-  enabled: true
+  enabled: true,
+  muteSoft: true
 }
 
 // do you want Gekko to calculate the profit of its own advice?
