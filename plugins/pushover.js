@@ -66,9 +66,9 @@ Pushover.prototype.processCandle = function(candle, callback) {
 }
 
 Pushover.prototype.processAdvice = function(advice) {
-  if (advice.recommandation == 'soft' && pushoverConfig.muteSoft) return;
+  if (advice.recommendation == 'soft' && pushoverConfig.muteSoft) return;
   var text = [
-    advice.recommandation,
+    advice.recommendation,
     this.price
   ].join(' ');
   var subject = text;
