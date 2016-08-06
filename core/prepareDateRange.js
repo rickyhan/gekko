@@ -73,6 +73,7 @@ module.exports = function(done) {
           var from = iterator.from;
           var to = iterator.to;
           reader.count(
+            'candles',
             from,
             iterator.to,
             (err, count) => {

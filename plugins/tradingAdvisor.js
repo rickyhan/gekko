@@ -138,7 +138,7 @@ Actor.prototype.prepareHistoricalData = function(done) {
         );
       }
 
-      reader.get(result, exchangeFrom, 'full', function(err, rows) {
+      reader.get('candles', result, exchangeFrom, 'full', function(err, rows) {
         // todo: do this in proper place
 
         rows = _.map(rows, row => {

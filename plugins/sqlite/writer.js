@@ -15,7 +15,6 @@ var Store = function(done, pluginMeta) {
   this.trades = [];
   this.mytrades = [];
 }
-
 Store.prototype.upsertTables = function() {
   var createQueries = [
     `
@@ -52,6 +51,18 @@ Store.prototype.upsertTables = function() {
         isBuy BOOL NOT NULL,
         amount REAL NOT NULL,
         price REAL NOT NULL
+      );
+    `,
+
+    `
+      CREATE TABLE IF NOT EXISTS
+      ${sqliteUtil.table('orderbookupdates')} (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        start INTEGER UNIQUE,
+        isModifyOrRemove BOOL NOT NULL,
+        isBid BOOL NOT NULL,
+        amount REAL ALLOW NULL,
+        rate REAL NOT NULL
       );
     `,
     // TODO: create advices
@@ -94,7 +105,6 @@ Store.prototype.writeCandles = function() {
 
   this.cache = [];
 }
-
 var processCandle = function(candle, done) {
 
   // because we might get a lot of candles
@@ -134,7 +144,6 @@ Store.prototype.writeTrades = function() {
 
   this.trades = [];
 }
-
 var processTrades = function(trade, done) {
 
   // because we might get a lot of candles
@@ -174,7 +183,6 @@ Store.prototype.writeMyTrades = function() {
 
   this.mytrades = [];
 }
-
 var processMyTrades = function(mytrade, done) {
 
   // because we might get a lot of candles
@@ -189,6 +197,45 @@ var processMyTrades = function(mytrade, done) {
   done();
 }
 
+// == orderbookupdates ==
+
+Store.prototype.writeOrderbookUpdates = function() {
+  if(_.isEmpty(this.orderbookupdates))
+    return;
+
+  var stmt = this.db.prepare(`
+    INSERT OR IGNORE INTO ${sqliteUtil.table('orderbookupdates')}
+    VALUES (?,?,?,?,?)
+  `);
+
+  _.each(this.orderbookupdates, orderbookupdate => {
+    stmt.run(
+      null,
+      mytrade.start.unix(),
+      mytrade.isModifyOrRemove,
+      mytrade.isBid,
+      mytrade.amount,
+      mytrade.rate
+    );
+  });
+
+  stmt.finalize();
+
+  this.orderbookupdates = [];
+}
+var processOrderbookUpdates = function(orderbookupdate, done) {
+
+  // because we might get a lot of candles
+  // in the same tick, we rather batch them
+  // up and insert them at once at next tick.
+  this.orderbookupdates.push(orderbookupdate);
+  _.defer(this.writeOrderbookUpdates);
+
+  // NOTE: sqlite3 has it's own buffering, at
+  // this point we are confident that the candle will
+  // get written to disk on next tick.
+  done();
+}
 
 if(config.candleWriter.enabled)
   Store.prototype.processCandle = processCandle;
