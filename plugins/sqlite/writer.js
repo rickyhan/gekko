@@ -12,6 +12,8 @@ var Store = function(done, pluginMeta) {
   this.db.serialize(this.upsertTables);
 
   this.cache = [];
+  this.trades = [];
+  this.mytrades = [];
 }
 
 Store.prototype.upsertTables = function() {
@@ -31,9 +33,27 @@ Store.prototype.upsertTables = function() {
       );
     `,
 
-    // TODO: create trades
-    // ``
+    `
+      CREATE TABLE IF NOT EXISTS
+      ${sqliteUtil.table('trades')} (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        start INTEGER UNIQUE,
+        isBuy BOOL NOT NULL,
+        amount REAL NOT NULL,
+        price REAL NOT NULL
+      );
+    `,
 
+    `
+      CREATE TABLE IF NOT EXISTS
+      ${sqliteUtil.table('mytrades')} (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        start INTEGER UNIQUE,
+        isBuy BOOL NOT NULL,
+        amount REAL NOT NULL,
+        price REAL NOT NULL
+      );
+    `,
     // TODO: create advices
     // ``
   ];
@@ -44,6 +64,8 @@ Store.prototype.upsertTables = function() {
     this.db.run(q, next);
   }, this);
 }
+
+// == candles ==
 
 Store.prototype.writeCandles = function() {
   if(_.isEmpty(this.cache))
@@ -87,21 +109,101 @@ var processCandle = function(candle, done) {
   done();
 }
 
+// == trades ==
+
+Store.prototype.writeTrades = function() {
+  if(_.isEmpty(this.trades))
+    return;
+
+  var stmt = this.db.prepare(`
+    INSERT OR IGNORE INTO ${sqliteUtil.table('trades')}
+    VALUES (?,?,?,?,?)
+  `);
+
+  _.each(this.trades, trade => {
+    stmt.run(
+      null,
+      trade.start.unix(),
+      trade.type,
+      trade.amount,
+      trade.price
+    );
+  });
+
+  stmt.finalize();
+
+  this.trades = [];
+}
+
+var processTrades = function(trade, done) {
+
+  // because we might get a lot of candles
+  // in the same tick, we rather batch them
+  // up and insert them at once at next tick.
+  this.trades.push(trade);
+  _.defer(this.writeTrades);
+
+  // NOTE: sqlite3 has it's own buffering, at
+  // this point we are confident that the candle will
+  // get written to disk on next tick.
+  done();
+}
+
+// == mytrades ==
+
+Store.prototype.writeMyTrades = function() {
+  if(_.isEmpty(this.mytrades))
+    return;
+
+  var stmt = this.db.prepare(`
+    INSERT OR IGNORE INTO ${sqliteUtil.table('mytrades')}
+    VALUES (?,?,?,?,?)
+  `);
+
+  _.each(this.mytrades, mytrade => {
+    stmt.run(
+      null,
+      mytrade.start.unix(),
+      mytrade.type,
+      mytrade.amount,
+      mytrade.price
+    );
+  });
+
+  stmt.finalize();
+
+  this.mytrades = [];
+}
+
+var processMyTrades = function(mytrade, done) {
+
+  // because we might get a lot of candles
+  // in the same tick, we rather batch them
+  // up and insert them at once at next tick.
+  this.trades.push(mytrade);
+  _.defer(this.writeMyTrades);
+
+  // NOTE: sqlite3 has it's own buffering, at
+  // this point we are confident that the candle will
+  // get written to disk on next tick.
+  done();
+}
+
+
 if(config.candleWriter.enabled)
   Store.prototype.processCandle = processCandle;
 
-// TODO: add storing of trades / advice?
+if(config.tradeWriter.enabled)
+ Store.prototype.processTrades = processTrades;
 
-// var processTrades = function(candles) {
-//   util.die('NOT IMPLEMENTED');
-// }
+if(config.myTradeWriter.enabled)
+ Store.prototype.processMyTrades = processMyTrades;
+
+// TODO: add storing of advice?
 
 // var processAdvice = function(candles) {
 //   util.die('NOT IMPLEMENTED');
 // }
-
-// if(config.tradeWriter.enabled)
-//  Store.prototype.processTrades = processTrades;
 
 // if(config.adviceWriter.enabled)
 //   Store.prototype.processAdvice = processAdvice;

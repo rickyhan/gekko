@@ -39,7 +39,6 @@ if(mode === 'realtime') {
   if(!fs.existsSync(dir))
     fs.mkdirSync(dir);
 
-
 } else if(mode === 'backtest') {
 
   if(!fs.existsSync(dir))

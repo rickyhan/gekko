@@ -267,6 +267,16 @@ config.candleWriter = {
   enabled: true
 }
 
+config.TradeWriter = {
+  adapter: 'sqlite',
+  enabled: true
+}
+
+config.MyTradeWriter = {
+  adapter: 'sqlite',
+  enabled: true
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //                       CONFIGURING ADAPTER
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
