@@ -17,7 +17,7 @@ var checker = require('./exchangeChecker.js');
 var Manager = function(conf) {
   _.bindAll(this);
 
-  var error = checker.cantTrade(conf)
+  var error = checker.cantTrade(conf);
   if(error)
     util.die(error);
 
