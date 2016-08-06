@@ -267,16 +267,20 @@ config.candleWriter = {
   enabled: true
 }
 
-config.TradeWriter = {
+config.tradeWriter = {
   adapter: 'sqlite',
   enabled: true
 }
 
-config.MyTradeWriter = {
+config.myTradeWriter = {
   adapter: 'sqlite',
   enabled: true
 }
 
+config.orderbookUpdateWriter = {
+  adapter: 'sqlite',
+  enabled: true
+}
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //                       CONFIGURING ADAPTER
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
